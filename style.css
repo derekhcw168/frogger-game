@@ -1,6 +1,6 @@
-/* Frogger 1981 街機復古風格樣式 */
+/* Frogger 3D Odyssey - 現代 3D 冒險遊戲樣式表 (Glassmorphism & Modern Gaming UI) */
 
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Press+Start+2P&display=swap');
 
 * {
     box-sizing: border-box;
@@ -8,247 +8,247 @@
     padding: 0;
     user-select: none;
     -webkit-user-select: none;
+    touch-action: manipulation;
 }
 
 body {
-    background-color: #0d0d12;
-    background-image: radial-gradient(#202035 15%, transparent 16%), radial-gradient(#202035 15%, transparent 16%);
-    background-size: 30px 30px;
-    background-position: 0 0, 15px 15px;
-    color: #fff;
-    font-family: 'Press Start 2P', monospace, sans-serif;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 10px;
-    overflow-x: hidden;
-}
-
-/* 街機主框體容器 */
-.arcade-container {
-    background: #1e1b24;
-    border: 8px solid #3d344d;
-    border-radius: 20px;
-    box-shadow: 0 0 40px rgba(0, 255, 128, 0.25), inset 0 0 20px rgba(0, 0, 0, 0.9);
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    max-width: 480px;
-    width: 100%;
-}
-
-/* 頂部街機燈箱 (Marquee) */
-.arcade-marquee {
-    background: linear-gradient(180deg, #111 0%, #2a0845 50%, #111 100%);
-    border: 3px solid #ff007f;
-    border-radius: 8px;
-    padding: 8px 16px;
-    width: 100%;
-    text-align: center;
-    margin-bottom: 12px;
-    box-shadow: 0 0 15px rgba(255, 0, 127, 0.6);
-}
-
-.arcade-marquee h1 {
-    font-size: 1.3rem;
-    color: #00ff66;
-    text-shadow: 0 0 10px #00ff66, 0 0 20px #00aa44, 2px 2px #ff007f;
-    letter-spacing: 3px;
-}
-
-.arcade-marquee .subtitle {
-    font-size: 0.55rem;
-    color: #ffde59;
-    margin-top: 4px;
-    letter-spacing: 1.5px;
-}
-
-/* 狀態面板 */
-.scoreboard {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    font-size: 0.65rem;
-    margin-bottom: 10px;
-    padding: 6px 12px;
-    background: #000;
-    border: 2px solid #555;
-    border-radius: 6px;
-}
-
-.score-item span {
-    color: #ffde59;
-}
-
-/* 螢幕外框與 CRT 質感 */
-.screen-wrapper {
-    position: relative;
-    background: #000;
-    border: 6px solid #111;
-    border-radius: 12px;
+    background-color: #0b0c10;
+    color: #ffffff;
+    font-family: 'Outfit', sans-serif;
     overflow: hidden;
-    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.9), 0 0 10px rgba(255, 255, 255, 0.1);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    position: relative;
 }
 
-/* 遊戲畫布 */
-#gameCanvas {
-    width: 336px;
-    height: 384px;
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
-    background-color: #000;
-    display: block;
-}
-
-/* CRT 掃描線特效 */
-.crt-overlay {
+/* 3D WebGL 畫布容器 */
+#gameContainer {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+    z-index: 1;
+}
+
+/* 頂部現代懸浮 HUD */
+.top-hud {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    right: 14px;
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     pointer-events: none;
-    background: linear-gradient(
-        rgba(18, 16, 16, 0) 50%, 
-        rgba(0, 0, 0, 0.35) 50%
-    );
-    background-size: 100% 4px;
-    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.6);
-    transition: opacity 0.3s;
 }
 
-.crt-off .crt-overlay {
-    opacity: 0;
+.hud-pill {
+    pointer-events: auto;
+    background: rgba(18, 22, 36, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+    border-radius: 30px;
+    padding: 8px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
 }
 
-/* 工具列 (功能按鈕) */
-.controls-bar {
+.world-badge {
+    background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+    color: #000;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 800;
+    cursor: pointer;
+    border: none;
+    font-size: 0.85rem;
+    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.world-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(79, 172, 254, 0.6);
+}
+
+.world-badge:active {
+    transform: translateY(1px);
+}
+
+.rescue-tracker {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.9rem;
+}
+
+.stats-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.stat-item span {
+    color: #ffd700;
+    font-weight: 800;
+}
+
+/* 底部技能快捷列 (Action Dock) */
+.bottom-dock {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    pointer-events: auto;
+}
+
+.skill-btn {
+    background: rgba(22, 27, 46, 0.85);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 22px;
+    color: #fff;
+    padding: 10px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    min-width: 90px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.skill-btn .icon {
+    font-size: 1.6rem;
+    margin-bottom: 2px;
+}
+
+.skill-btn .label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.skill-btn .hotkey {
+    font-size: 0.65rem;
+    color: #00f2fe;
+    background: rgba(0, 242, 254, 0.15);
+    padding: 2px 6px;
+    border-radius: 6px;
+    margin-top: 4px;
+}
+
+.skill-btn:hover {
+    transform: translateY(-4px);
+    border-color: #00f2fe;
+    box-shadow: 0 12px 30px rgba(0, 242, 254, 0.3);
+}
+
+.skill-btn:active {
+    transform: translateY(2px);
+}
+
+.skill-btn.special {
+    background: linear-gradient(135deg, rgba(255, 0, 128, 0.8) 0%, rgba(121, 40, 202, 0.8) 100%);
+    border-color: rgba(255, 0, 128, 0.5);
+}
+
+.skill-btn.special:hover {
+    box-shadow: 0 12px 30px rgba(255, 0, 128, 0.5);
+}
+
+/* 右下角工具選單 (聲音、全螢幕) */
+.quick-tools {
+    position: absolute;
+    bottom: 24px;
+    right: 20px;
+    z-index: 10;
     display: flex;
     gap: 8px;
-    margin-top: 12px;
-    width: 100%;
-    justify-content: center;
-    flex-wrap: wrap;
 }
 
-.arcade-btn {
-    background: #ff2a6d;
+.tool-icon-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(18, 22, 36, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: #fff;
-    border: none;
-    font-family: inherit;
-    font-size: 0.6rem;
-    padding: 8px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    box-shadow: 0 4px 0 #990033;
-    transition: all 0.1s;
-}
-
-.arcade-btn:active {
-    transform: translateY(3px);
-    box-shadow: 0 1px 0 #990033;
-}
-
-.arcade-btn.secondary {
-    background: #05d9e8;
-    color: #000;
-    box-shadow: 0 4px 0 #007f8a;
-}
-
-.arcade-btn.secondary:active {
-    box-shadow: 0 1px 0 #007f8a;
-}
-
-/* 難度切換按鈕與徽章樣式 */
-.arcade-btn.diff-btn {
-    background: #ffbb00;
-    color: #000;
-    font-weight: bold;
-    box-shadow: 0 4px 0 #b38300;
-}
-
-.arcade-btn.diff-btn:active {
-    box-shadow: 0 1px 0 #b38300;
-}
-
-.diff-badge {
-    font-weight: bold;
-    padding: 2px 4px;
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.1);
-}
-
-/* 行動端虛擬搖桿 (D-pad) */
-.dpad-container {
-    margin-top: 14px;
-    display: grid;
-    grid-template-columns: repeat(3, 52px);
-    grid-template-rows: repeat(3, 52px);
-    gap: 4px;
-    justify-content: center;
-    align-items: center;
-}
-
-.dpad-btn {
-    background: #2a2a38;
-    border: 2px solid #555;
-    border-radius: 8px;
-    color: #00ff66;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 3px 0 #111;
-    touch-action: manipulation;
+    transition: all 0.15s;
 }
 
-.dpad-btn:active {
-    background: #00ff66;
+.tool-icon-btn:hover {
+    background: #00f2fe;
     color: #000;
-    transform: translateY(2px);
-    box-shadow: 0 1px 0 #111;
+    transform: scale(1.1);
 }
 
-.dpad-up { grid-column: 2; grid-row: 1; }
-.dpad-left { grid-column: 1; grid-row: 2; }
-.dpad-center { 
-    grid-column: 2; 
-    grid-row: 2; 
-    background: #1a1a24;
-    border-color: #333;
-    font-size: 0.6rem;
-    color: #888;
-}
-.dpad-right { grid-column: 3; grid-row: 2; }
-.dpad-down { grid-column: 2; grid-row: 3; }
-
-/* 說明文字 */
-.instructions {
-    font-size: 0.5rem;
-    color: #888;
-    text-align: center;
-    margin-top: 12px;
-    line-height: 1.5;
+/* 遊戲指南漂浮提示 */
+.floating-tip {
+    position: absolute;
+    bottom: 110px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9;
+    background: rgba(0, 0, 0, 0.55);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: #a0aec0;
+    pointer-events: none;
 }
 
-/* 響應式微調 */
-@media (max-width: 400px) {
-    #gameCanvas {
-        width: 280px;
-        height: 320px;
+/* 行動端版面優化 */
+@media (max-width: 768px) {
+    .top-hud {
+        flex-direction: column;
+        gap: 8px;
+        align-items: stretch;
     }
-    .arcade-container {
-        padding: 10px;
+    .hud-pill {
+        justify-content: space-between;
+        padding: 6px 12px;
+        font-size: 0.8rem;
     }
-    .dpad-container {
-        grid-template-columns: repeat(3, 46px);
-        grid-template-rows: repeat(3, 46px);
+    .bottom-dock {
+        gap: 8px;
+        bottom: 12px;
+    }
+    .skill-btn {
+        min-width: 70px;
+        padding: 8px 10px;
+    }
+    .skill-btn .icon {
+        font-size: 1.3rem;
+    }
+    .skill-btn .label {
+        font-size: 0.7rem;
+    }
+    .floating-tip {
+        display: none;
     }
 }

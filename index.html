@@ -3,82 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>青蛙過馬路 1981 經典街機復刻版 (Frogger Arcade)</title>
+    <title>青蛙過街 2：3D 跨越冒險 (Frogger 3D Odyssey)</title>
     <link rel="stylesheet" href="style.css">
+    <!-- 引入 Three.js WebGL 3D 引擎 (CDN) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
-    <div class="arcade-container" id="arcadeCabinet">
-        <!-- 頂部街機發光燈箱 -->
-        <header class="arcade-marquee">
-            <h1>FROGGER</h1>
-            <div class="subtitle">★ 1981 ARCADE CLASSIC ★</div>
-        </header>
+    <!-- 3D 畫布容器 -->
+    <div id="gameContainer"></div>
 
-        <!-- 儀表板狀態 -->
-        <div class="scoreboard">
-            <div class="score-item">分數: <span id="uiScore">0</span></div>
-            <div class="score-item">最高: <span id="uiHighScore">10000</span></div>
-            <div class="score-item">關卡: <span id="uiLevel">1</span></div>
-            <div class="score-item">難度: <span id="uiDifficulty" class="diff-badge">普通</span></div>
-            <div class="score-item">生命: <span id="uiLives">🐸🐸🐸</span></div>
+    <!-- 頂部現代毛玻璃 HUD 資訊列 -->
+    <header class="top-hud">
+        <div class="hud-pill">
+            <button class="world-badge" id="worldSelectBtn">🗺️ <span id="hudWorld">世界 1：花園小溪</span> ▾</button>
+            <div class="rescue-tracker">
+                <span>拯救小萌蛙:</span>
+                <div id="hudBabyIcons"></div>
+            </div>
         </div>
 
-        <!-- 遊戲螢幕容器 (含 CRT 濾鏡) -->
-        <div class="screen-wrapper" id="screenWrapper">
-            <canvas id="gameCanvas"></canvas>
-            <div class="crt-overlay" id="crtOverlay"></div>
+        <div class="hud-pill">
+            <div class="stats-group">
+                <div class="stat-item">🪙 金幣: <span id="hudCoins">0</span></div>
+                <div class="stat-item">⭐ 分數: <span id="hudScore">0</span></div>
+                <div class="stat-item">🏆 最高: <span id="hudHighScore">5000</span></div>
+                <div class="stat-item">生命: <span id="hudLives">🐸🐸🐸</span></div>
+            </div>
         </div>
+    </header>
 
-        <!-- 遊戲控制工具列 -->
-        <div class="controls-bar">
-            <button class="arcade-btn" id="startBtn">▶ 開始遊戲</button>
-            <button class="arcade-btn diff-btn" id="diffBtn">⚙ 難度: 普通</button>
-            <button class="arcade-btn secondary" id="muteBtn">🔊 音效</button>
-            <button class="arcade-btn secondary" id="crtBtn">📺 CRT:開</button>
-            <button class="arcade-btn secondary" id="fullscreenBtn">⛶ 全螢幕</button>
-        </div>
-
-        <!-- 行動裝置虛擬搖桿 (D-pad) -->
-        <div class="dpad-container" id="dpad">
-            <div></div>
-            <button class="dpad-btn dpad-up" id="btnUp" aria-label="向上跳">▲</button>
-            <div></div>
-            <button class="dpad-btn dpad-left" id="btnLeft" aria-label="向左跳">◀</button>
-            <div class="dpad-btn dpad-center">FROG</div>
-            <button class="dpad-btn dpad-right" id="btnRight" aria-label="向右跳">▶</button>
-            <div></div>
-            <button class="dpad-btn dpad-down" id="btnDown" aria-label="向下跳">▼</button>
-            <div></div>
-        </div>
-
-        <!-- 操作指南 -->
-        <footer class="instructions">
-            <p>鍵盤：[↑↓←→] 或 [W A S D] 跳躍 | [空白鍵] 開始/暫停 | [M] 靜音</p>
-            <p>手機：輕觸下方方向鍵 或 在螢幕上上下左右滑動跳躍</p>
-        </footer>
+    <!-- 操作漂浮提示 -->
+    <div class="floating-tip">
+        [↑↓←→ / WASD] 跳躍 | [空白鍵] 超級大跳 | [E] 伸長舌頭 | [Q] 蛙鳴尋找小青蛙
     </div>
 
-    <!-- 腳本引入 -->
+    <!-- 底部動作與超能力技能列 (Action Dock) -->
+    <footer class="bottom-dock">
+        <button class="skill-btn special" id="btnSuperHop" aria-label="超級大跳">
+            <span class="icon">🚀</span>
+            <span class="label">超級大跳</span>
+            <span class="hotkey">空白鍵 / J</span>
+        </button>
+
+        <button class="skill-btn" id="btnTongue" aria-label="長舌抓捕">
+            <span class="icon">👅</span>
+            <span class="label">長舌抓捕</span>
+            <span class="hotkey">E 鍵 / K</span>
+        </button>
+
+        <button class="skill-btn" id="btnCroak" aria-label="超能蛙鳴">
+            <span class="icon">📢</span>
+            <span class="label">超能蛙鳴</span>
+            <span class="hotkey">Q 鍵 / L</span>
+        </button>
+    </footer>
+
+    <!-- 右下角快捷工具列 -->
+    <aside class="quick-tools">
+        <button class="tool-icon-btn" id="muteBtn" title="音效開關">🔊</button>
+        <button class="tool-icon-btn" id="fullscreenBtn" title="全螢幕">⛶</button>
+    </aside>
+
+    <!-- 遊戲腳本 -->
     <script src="audio.js"></script>
-    <script src="sprites.js"></script>
-    <script src="game.js"></script>
+    <script src="models3d.js"></script>
+    <script src="game3d.js"></script>
 
     <script>
-        // CRT 特效開關
-        const crtBtn = document.getElementById('crtBtn');
-        const screenWrapper = document.getElementById('screenWrapper');
-        let crtEnabled = true;
-
-        crtBtn.addEventListener('click', () => {
-            crtEnabled = !crtEnabled;
-            if (crtEnabled) {
-                screenWrapper.classList.remove('crt-off');
-                crtBtn.textContent = '📺 CRT:開';
-            } else {
-                screenWrapper.classList.add('crt-off');
-                crtBtn.textContent = '📺 CRT:關';
-            }
+        // 音效開關
+        const muteBtn = document.getElementById('muteBtn');
+        muteBtn.addEventListener('click', () => {
+            window.soundEngine.init();
+            const isMuted = window.soundEngine.toggleMute();
+            muteBtn.textContent = isMuted ? '🔇' : '🔊';
         });
 
         // 全螢幕切換
@@ -86,14 +84,22 @@
         fullscreenBtn.addEventListener('click', () => {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(() => {});
-                fullscreenBtn.textContent = '⛶ 退出';
+                fullscreenBtn.textContent = '✖';
             } else {
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
-                    fullscreenBtn.textContent = '⛶ 全螢幕';
+                    fullscreenBtn.textContent = '⛶';
                 }
             }
         });
+
+        // 首次點擊或按鍵啟用聲音引擎
+        window.addEventListener('click', () => {
+            if (window.soundEngine) {
+                window.soundEngine.init();
+                window.soundEngine.startBGM();
+            }
+        }, { once: true });
     </script>
 </body>
 </html>
