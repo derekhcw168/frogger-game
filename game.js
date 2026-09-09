@@ -3,6 +3,58 @@
  * 嚴格還原 1981 年 Konami 經典街機物理、時序、碰撞與得分系統
  */
 
+// 街機遊戲難度配置表
+const DIFFICULTIES = {
+    EASY: {
+        key: 'EASY',
+        name: '簡單',
+        color: '#00ff66',
+        speedMult: 0.75,    // 車速減緩 25%
+        maxTime: 45,        // 充裕的 45 秒
+        initialLives: 5,    // 5 條命
+        canDive: false,     // 烏龜不下潛
+        crocChance: 0.0,    // 不出現鱷魚
+        scoreMult: 1.0,
+        desc: '車速慢 / 烏龜不下潛 / 45秒 / 5條命'
+    },
+    NORMAL: {
+        key: 'NORMAL',
+        name: '普通',
+        color: '#00e5ff',
+        speedMult: 1.0,     // 原版 1981 街機標準
+        maxTime: 30,        // 標準 30 秒
+        initialLives: 3,    // 3 條命
+        canDive: true,      // 烏龜下潛
+        crocChance: 0.25,   // 正常機率出現鱷魚
+        scoreMult: 1.0,
+        desc: '原版街機標準 / 烏龜下潛 / 30秒 / 3條命'
+    },
+    HARD: {
+        key: 'HARD',
+        name: '困難',
+        color: '#ffbb00',
+        speedMult: 1.35,    // 車速加快 35%
+        maxTime: 22,        // 22 秒緊迫倒數
+        initialLives: 3,    // 3 條命
+        canDive: true,      // 烏龜下潛更頻繁
+        crocChance: 0.45,   // 鱷魚出現更頻繁
+        scoreMult: 1.5,     // 分數 1.5 倍加成！
+        desc: '快速車流 / 22秒倒數 / 分數1.5x'
+    },
+    EXPERT: {
+        key: 'EXPERT',
+        name: '地獄',
+        color: '#ff2a6d',
+        speedMult: 1.7,     // 極速狂飆 70%
+        maxTime: 16,        // 16 秒生死時速
+        initialLives: 2,    // 僅 2 條命
+        canDive: true,      // 幾乎全下潛
+        crocChance: 0.7,    // 大量鱷魚
+        scoreMult: 2.0,     // 分數雙倍 2.0x！
+        desc: '極速暴衝 / 16秒倒數 / 2條命 / 分數2x'
+    }
+};
+
 class FroggerGame {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
@@ -16,17 +68,23 @@ class FroggerGame {
         this.canvas.width = this.WIDTH;
         this.canvas.height = this.HEIGHT;
 
+        // 難度設定 (讀取本機快取，預設 NORMAL)
+        this.currentDifficultyKey = localStorage.getItem('frogger_difficulty') || 'NORMAL';
+        if (!DIFFICULTIES[this.currentDifficultyKey]) {
+            this.currentDifficultyKey = 'NORMAL';
+        }
+
         // 遊戲狀態: 'TITLE', 'PLAYING', 'DYING', 'LEVEL_CLEAR', 'GAME_OVER', 'PAUSED'
         this.state = 'TITLE';
 
         // 分數與生命
         this.score = 0;
         this.highScore = parseInt(localStorage.getItem('frogger_highscore')) || 10000;
-        this.lives = 3;
+        this.lives = this.difficulty.initialLives;
         this.level = 1;
 
-        // 計時器 (街機標準每條命 30 秒)
-        this.maxTime = 30;
+        // 計時器 (依照難度設定)
+        this.maxTime = this.difficulty.maxTime;
         this.timeLeft = this.maxTime;
         this.lastTimeTick = 0;
 
@@ -81,12 +139,42 @@ class FroggerGame {
         requestAnimationFrame((t) => this.gameLoop(t));
     }
 
-    // 初始化車道與河道
+    // 取得當前難度配置
+    get difficulty() {
+        return DIFFICULTIES[this.currentDifficultyKey] || DIFFICULTIES.NORMAL;
+    }
+
+    // 循環切換難度 (簡單 ➔ 普通 ➔ 困難 ➔ 地獄)
+    cycleDifficulty() {
+        const keys = Object.keys(DIFFICULTIES);
+        const currentIndex = keys.indexOf(this.currentDifficultyKey);
+        const nextIndex = (currentIndex + 1) % keys.length;
+        this.currentDifficultyKey = keys[nextIndex];
+        localStorage.setItem('frogger_difficulty', this.currentDifficultyKey);
+
+        window.soundEngine.init();
+        window.soundEngine.playBonus();
+
+        // 重新設定計時與生命
+        this.maxTime = this.difficulty.maxTime;
+        if (this.state === 'TITLE' || this.state === 'GAME_OVER') {
+            this.lives = this.difficulty.initialLives;
+            this.timeLeft = this.maxTime;
+            this.initLanes();
+        } else if (this.state === 'PLAYING') {
+            // 遊玩中切換：直接套用新局重啟
+            this.startGame();
+        }
+        this.updateUI();
+    }
+
+    // 初始化車道與河道 (融合關卡與難度係數)
     initLanes() {
         this.vehicles = [];
         this.waterObjects = [];
 
-        const speedMult = 1 + (this.level - 1) * 0.18;
+        // 基礎難度倍率 × 關卡成長倍率
+        const speedMult = this.difficulty.speedMult * (1 + (this.level - 1) * 0.18);
 
         // --- 1. 馬路車道 (Row 9 ~ 13, y: 144 ~ 208) ---
         // Row 13 (y: 208): 黃色小轎車 (向左, 速度約 1.1)
@@ -101,13 +189,13 @@ class FroggerGame {
         this.createVehicleLane(144, -0.9 * speedMult, 32, 'TRUCK', [10, 110]);
 
         // --- 2. 河流車道 (Row 3 ~ 7, y: 48 ~ 112) ---
-        // Row 7 (y: 112): 3連烏龜 (向左, 速度約 1.0, 某些組會下潛)
+        // Row 7 (y: 112): 3連烏龜 (向左, 速度約 1.0)
         this.createTurtleLane(112, -1.0 * speedMult, 3, [10, 80, 150]);
         // Row 6 (y: 96): 小型浮木 (向右, 速度約 1.2, 寬度 48)
         this.createLogLane(96, 1.2 * speedMult, 48, [20, 100, 180]);
         // Row 5 (y: 80): 特大浮木 (向右, 速度約 1.6, 寬度 96)
         this.createLogLane(80, 1.6 * speedMult, 96, [10, 130]);
-        // Row 4 (y: 64): 2連烏龜 (向左, 速度約 1.3, 會下潛)
+        // Row 4 (y: 64): 2連烏龜 (向左, 速度約 1.3)
         this.createTurtleLane(64, -1.3 * speedMult, 2, [30, 90, 160]);
         // Row 3 (y: 48): 中型浮木或鱷魚 (向右, 速度約 1.1, 寬度 64)
         this.createLogLane(48, 1.1 * speedMult, 64, [10, 90, 170]);
@@ -121,8 +209,8 @@ class FroggerGame {
 
     createLogLane(y, speed, width, startPositions) {
         startPositions.forEach(x => {
-            // 隨機機會將浮木替換為鱷魚
-            const isCroc = (this.level >= 2 && Math.random() < 0.25);
+            // 隨機機會將浮木替換為鱷魚 (依難度機率)
+            const isCroc = (this.level >= 2 && Math.random() < this.difficulty.crocChance);
             this.waterObjects.push({
                 x, y, speed, width,
                 type: isCroc ? 'CROC' : 'LOG',
@@ -135,8 +223,8 @@ class FroggerGame {
 
     createTurtleLane(y, speed, count, startPositions) {
         startPositions.forEach((x, idx) => {
-            // 某些烏龜組具備潛水能力
-            const canDive = (idx % 2 === 1 || this.level >= 2);
+            // 烏龜下潛能力 (依難度決定是否啟用)
+            const canDive = this.difficulty.canDive && (idx % 2 === 1 || this.level >= 2);
             this.waterObjects.push({
                 x, y, speed,
                 width: count * 16,
@@ -144,7 +232,7 @@ class FroggerGame {
                 count,
                 canDive,
                 diveState: 0, // 0: 浮出, 1: 預警, 2: 半潛, 3: 沉底
-                diveTimer: Math.random() * 200 + 100
+                diveTimer: Math.random() * 180 + 80
             });
         });
     }
@@ -244,8 +332,10 @@ class FroggerGame {
     }
 
     addScore(pts) {
+        // 依難度倍率計算分數加成
+        const actualPts = Math.round(pts * this.difficulty.scoreMult);
         const oldScore = this.score;
-        this.score += pts;
+        this.score += actualPts;
         // 每達 10,000 分獎勵一條命
         if (Math.floor(this.score / 10000) > Math.floor(oldScore / 10000)) {
             this.lives++;
@@ -262,7 +352,9 @@ class FroggerGame {
         window.soundEngine.startBGM();
         this.state = 'PLAYING';
         this.score = 0;
-        this.lives = 3;
+        this.lives = this.difficulty.initialLives;
+        this.maxTime = this.difficulty.maxTime;
+        this.timeLeft = this.maxTime;
         this.level = 1;
         this.homeBays.forEach(b => {
             b.filled = false;
@@ -290,9 +382,18 @@ class FroggerGame {
             } else if (['ArrowLeft', 'KeyA'].includes(e.code)) {
                 e.preventDefault();
                 this.moveFrog('LEFT');
-            } else if (['ArrowRight', 'KeyD'].includes(e.code)) {
+            } else if (['ArrowRight'].includes(e.code)) {
                 e.preventDefault();
                 this.moveFrog('RIGHT');
+            } else if (e.code === 'KeyD') {
+                // 若在標題畫面，D 鍵可切換難度；遊戲中則作為向右移動
+                if (this.state === 'TITLE' || this.state === 'GAME_OVER') {
+                    e.preventDefault();
+                    this.cycleDifficulty();
+                } else {
+                    e.preventDefault();
+                    this.moveFrog('RIGHT');
+                }
             } else if (e.code === 'Space') {
                 e.preventDefault();
                 if (this.state === 'TITLE' || this.state === 'GAME_OVER') {
@@ -362,6 +463,14 @@ class FroggerGame {
         setupBtn('btnDown', 'DOWN');
         setupBtn('btnLeft', 'LEFT');
         setupBtn('btnRight', 'RIGHT');
+
+        // 難度切換按鈕
+        const diffBtn = document.getElementById('diffBtn');
+        if (diffBtn) {
+            diffBtn.addEventListener('click', () => {
+                this.cycleDifficulty();
+            });
+        }
 
         // 音效開關按鈕
         const muteBtn = document.getElementById('muteBtn');
@@ -679,7 +788,7 @@ class FroggerGame {
 
         // 7. 畫面遮罩/提示文字
         if (this.state === 'TITLE') {
-            this.renderOverlay(ctx, 'FROGGER 1981', '點擊或按空白鍵開始');
+            this.renderOverlay(ctx, 'FROGGER 1981', `[空白鍵開始] 難度:${this.difficulty.name}`);
         } else if (this.state === 'PAUSED') {
             this.renderOverlay(ctx, 'PAUSED', '按空白鍵繼續');
         } else if (this.state === 'LEVEL_CLEAR') {
@@ -725,21 +834,28 @@ class FroggerGame {
     }
 
     renderOverlay(ctx, title, sub) {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(20, 80, this.WIDTH - 40, 80);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+        ctx.fillRect(16, 75, this.WIDTH - 32, 90);
 
         ctx.strokeStyle = '#FFFF00';
         ctx.lineWidth = 2;
-        ctx.strokeRect(20, 80, this.WIDTH - 40, 80);
+        ctx.strokeRect(16, 75, this.WIDTH - 32, 90);
 
         ctx.fillStyle = '#FFFF00';
         ctx.textAlign = 'center';
         ctx.font = 'bold 12px "Courier New", monospace';
-        ctx.fillText(title, this.WIDTH / 2, 112);
+        ctx.fillText(title, this.WIDTH / 2, 105);
 
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = '9px "Courier New", monospace';
-        ctx.fillText(sub, this.WIDTH / 2, 134);
+        ctx.fillStyle = '#00FFFF';
+        ctx.font = '8px "Courier New", monospace';
+        ctx.fillText(sub, this.WIDTH / 2, 126);
+
+        if (this.state === 'TITLE') {
+            ctx.fillStyle = this.difficulty.color;
+            ctx.font = '7px "Courier New", monospace';
+            ctx.fillText(this.difficulty.desc, this.WIDTH / 2, 146);
+        }
+
         ctx.textAlign = 'left';
     }
 
@@ -748,10 +864,24 @@ class FroggerGame {
         const hiEl = document.getElementById('uiHighScore');
         const livesEl = document.getElementById('uiLives');
         const levelEl = document.getElementById('uiLevel');
+        const diffEl = document.getElementById('uiDifficulty');
+        const diffBtn = document.getElementById('diffBtn');
+
         if (scoreEl) scoreEl.textContent = this.score;
         if (hiEl) hiEl.textContent = this.highScore;
         if (livesEl) livesEl.textContent = '🐸'.repeat(Math.max(0, this.lives));
         if (levelEl) levelEl.textContent = this.level;
+
+        if (diffEl) {
+            diffEl.textContent = this.difficulty.name;
+            diffEl.style.color = this.difficulty.color;
+        }
+
+        if (diffBtn) {
+            diffBtn.textContent = `⚙ 難度: ${this.difficulty.name}`;
+            diffBtn.style.backgroundColor = this.difficulty.color;
+            diffBtn.style.color = (this.difficulty.key === 'EXPERT' || this.difficulty.key === 'HARD') ? '#000' : '#000';
+        }
     }
 
     gameLoop(timestamp) {
