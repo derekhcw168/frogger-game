@@ -1,0 +1,235 @@
+/* Frogger 1981 街機復古風格樣式 */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+body {
+    background-color: #0d0d12;
+    background-image: radial-gradient(#202035 15%, transparent 16%), radial-gradient(#202035 15%, transparent 16%);
+    background-size: 30px 30px;
+    background-position: 0 0, 15px 15px;
+    color: #fff;
+    font-family: 'Press Start 2P', monospace, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    overflow-x: hidden;
+}
+
+/* 街機主框體容器 */
+.arcade-container {
+    background: #1e1b24;
+    border: 8px solid #3d344d;
+    border-radius: 20px;
+    box-shadow: 0 0 40px rgba(0, 255, 128, 0.25), inset 0 0 20px rgba(0, 0, 0, 0.9);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 480px;
+    width: 100%;
+}
+
+/* 頂部街機燈箱 (Marquee) */
+.arcade-marquee {
+    background: linear-gradient(180deg, #111 0%, #2a0845 50%, #111 100%);
+    border: 3px solid #ff007f;
+    border-radius: 8px;
+    padding: 8px 16px;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 12px;
+    box-shadow: 0 0 15px rgba(255, 0, 127, 0.6);
+}
+
+.arcade-marquee h1 {
+    font-size: 1.3rem;
+    color: #00ff66;
+    text-shadow: 0 0 10px #00ff66, 0 0 20px #00aa44, 2px 2px #ff007f;
+    letter-spacing: 3px;
+}
+
+.arcade-marquee .subtitle {
+    font-size: 0.55rem;
+    color: #ffde59;
+    margin-top: 4px;
+    letter-spacing: 1.5px;
+}
+
+/* 狀態面板 */
+.scoreboard {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    font-size: 0.65rem;
+    margin-bottom: 10px;
+    padding: 6px 12px;
+    background: #000;
+    border: 2px solid #555;
+    border-radius: 6px;
+}
+
+.score-item span {
+    color: #ffde59;
+}
+
+/* 螢幕外框與 CRT 質感 */
+.screen-wrapper {
+    position: relative;
+    background: #000;
+    border: 6px solid #111;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.9), 0 0 10px rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 遊戲畫布 */
+#gameCanvas {
+    width: 336px;
+    height: 384px;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    background-color: #000;
+    display: block;
+}
+
+/* CRT 掃描線特效 */
+.crt-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.35) 50%
+    );
+    background-size: 100% 4px;
+    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.6);
+    transition: opacity 0.3s;
+}
+
+.crt-off .crt-overlay {
+    opacity: 0;
+}
+
+/* 工具列 (功能按鈕) */
+.controls-bar {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.arcade-btn {
+    background: #ff2a6d;
+    color: #fff;
+    border: none;
+    font-family: inherit;
+    font-size: 0.6rem;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #990033;
+    transition: all 0.1s;
+}
+
+.arcade-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #990033;
+}
+
+.arcade-btn.secondary {
+    background: #05d9e8;
+    color: #000;
+    box-shadow: 0 4px 0 #007f8a;
+}
+
+.arcade-btn.secondary:active {
+    box-shadow: 0 1px 0 #007f8a;
+}
+
+/* 行動端虛擬搖桿 (D-pad) */
+.dpad-container {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: repeat(3, 52px);
+    grid-template-rows: repeat(3, 52px);
+    gap: 4px;
+    justify-content: center;
+    align-items: center;
+}
+
+.dpad-btn {
+    background: #2a2a38;
+    border: 2px solid #555;
+    border-radius: 8px;
+    color: #00ff66;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 3px 0 #111;
+    touch-action: manipulation;
+}
+
+.dpad-btn:active {
+    background: #00ff66;
+    color: #000;
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #111;
+}
+
+.dpad-up { grid-column: 2; grid-row: 1; }
+.dpad-left { grid-column: 1; grid-row: 2; }
+.dpad-center { 
+    grid-column: 2; 
+    grid-row: 2; 
+    background: #1a1a24;
+    border-color: #333;
+    font-size: 0.6rem;
+    color: #888;
+}
+.dpad-right { grid-column: 3; grid-row: 2; }
+.dpad-down { grid-column: 2; grid-row: 3; }
+
+/* 說明文字 */
+.instructions {
+    font-size: 0.5rem;
+    color: #888;
+    text-align: center;
+    margin-top: 12px;
+    line-height: 1.5;
+}
+
+/* 響應式微調 */
+@media (max-width: 400px) {
+    #gameCanvas {
+        width: 280px;
+        height: 320px;
+    }
+    .arcade-container {
+        padding: 10px;
+    }
+    .dpad-container {
+        grid-template-columns: repeat(3, 46px);
+        grid-template-rows: repeat(3, 46px);
+    }
+}

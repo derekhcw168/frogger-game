@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>青蛙過馬路 1981 經典街機復刻版 (Frogger Arcade)</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="arcade-container" id="arcadeCabinet">
+        <!-- 頂部街機發光燈箱 -->
+        <header class="arcade-marquee">
+            <h1>FROGGER</h1>
+            <div class="subtitle">★ 1981 ARCADE CLASSIC ★</div>
+        </header>
+
+        <!-- 儀表板狀態 -->
+        <div class="scoreboard">
+            <div class="score-item">分數: <span id="uiScore">0</span></div>
+            <div class="score-item">最高: <span id="uiHighScore">10000</span></div>
+            <div class="score-item">關卡: <span id="uiLevel">1</span></div>
+            <div class="score-item">生命: <span id="uiLives">🐸🐸🐸</span></div>
+        </div>
+
+        <!-- 遊戲螢幕容器 (含 CRT 濾鏡) -->
+        <div class="screen-wrapper" id="screenWrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div class="crt-overlay" id="crtOverlay"></div>
+        </div>
+
+        <!-- 遊戲控制工具列 -->
+        <div class="controls-bar">
+            <button class="arcade-btn" id="startBtn">▶ 開始遊戲</button>
+            <button class="arcade-btn secondary" id="muteBtn">🔊 音效</button>
+            <button class="arcade-btn secondary" id="crtBtn">📺 CRT:開</button>
+            <button class="arcade-btn secondary" id="fullscreenBtn">⛶ 全螢幕</button>
+        </div>
+
+        <!-- 行動裝置虛擬搖桿 (D-pad) -->
+        <div class="dpad-container" id="dpad">
+            <div></div>
+            <button class="dpad-btn dpad-up" id="btnUp" aria-label="向上跳">▲</button>
+            <div></div>
+            <button class="dpad-btn dpad-left" id="btnLeft" aria-label="向左跳">◀</button>
+            <div class="dpad-btn dpad-center">FROG</div>
+            <button class="dpad-btn dpad-right" id="btnRight" aria-label="向右跳">▶</button>
+            <div></div>
+            <button class="dpad-btn dpad-down" id="btnDown" aria-label="向下跳">▼</button>
+            <div></div>
+        </div>
+
+        <!-- 操作指南 -->
+        <footer class="instructions">
+            <p>鍵盤：[↑↓←→] 或 [W A S D] 跳躍 | [空白鍵] 開始/暫停 | [M] 靜音</p>
+            <p>手機：輕觸下方方向鍵 或 在螢幕上上下左右滑動跳躍</p>
+        </footer>
+    </div>
+
+    <!-- 腳本引入 -->
+    <script src="audio.js"></script>
+    <script src="sprites.js"></script>
+    <script src="game.js"></script>
+
+    <script>
+        // CRT 特效開關
+        const crtBtn = document.getElementById('crtBtn');
+        const screenWrapper = document.getElementById('screenWrapper');
+        let crtEnabled = true;
+
+        crtBtn.addEventListener('click', () => {
+            crtEnabled = !crtEnabled;
+            if (crtEnabled) {
+                screenWrapper.classList.remove('crt-off');
+                crtBtn.textContent = '📺 CRT:開';
+            } else {
+                screenWrapper.classList.add('crt-off');
+                crtBtn.textContent = '📺 CRT:關';
+            }
+        });
+
+        // 全螢幕切換
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+                fullscreenBtn.textContent = '⛶ 退出';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    fullscreenBtn.textContent = '⛶ 全螢幕';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
