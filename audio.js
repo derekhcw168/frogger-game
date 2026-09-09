@@ -144,18 +144,20 @@ class SoundEngine3D {
         const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5]; // C5, E5, G5, C6, E6
         notes.forEach((freq, idx) => {
             setTimeout(() => {
-                if (this.muted || !this.ctx) return;
-                const now = this.ctx.currentTime;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(freq, now);
-                gain.gain.setValueAtTime(0.3 * this.volume, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(now);
-                osc.stop(now + 0.12);
+                try {
+                    if (this.muted || !this.ctx) return;
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now);
+                    gain.gain.setValueAtTime(0.3 * this.volume, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.12);
+                } catch (e) {}
             }, idx * 55);
         });
     }
@@ -264,18 +266,20 @@ class SoundEngine3D {
         let delay = 0;
         melody.forEach(item => {
             setTimeout(() => {
-                if (this.muted || !this.ctx) return;
-                const now = this.ctx.currentTime;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(item.f, now);
-                gain.gain.setValueAtTime(0.3 * this.volume, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + item.d);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(now);
-                osc.stop(now + item.d);
+                try {
+                    if (this.muted || !this.ctx) return;
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(item.f, now);
+                    gain.gain.setValueAtTime(0.3 * this.volume, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + item.d);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + item.d);
+                } catch (e) {}
             }, delay);
             delay += item.d * 1000 + 40;
         });
@@ -322,19 +326,21 @@ class SoundEngine3D {
         let totalTime = 0;
         notes.forEach(n => {
             setTimeout(() => {
-                if (this.bgmPlaying && !this.muted && this.ctx) {
-                    const now = this.ctx.currentTime;
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(n.f, now);
-                    gain.gain.setValueAtTime(0.08 * this.volume, now);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, now + n.d);
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-                    osc.start(now);
-                    osc.stop(now + n.d);
-                }
+                try {
+                    if (this.bgmPlaying && !this.muted && this.ctx) {
+                        const now = this.ctx.currentTime;
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(n.f, now);
+                        gain.gain.setValueAtTime(0.08 * this.volume, now);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, now + n.d);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now);
+                        osc.stop(now + n.d);
+                    }
+                } catch (e) {}
             }, totalTime);
             totalTime += n.d * 1000 + 40;
         });
