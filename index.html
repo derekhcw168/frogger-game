@@ -3,56 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>青蛙過街 2：3D 跨越冒險 (Frogger 3D Odyssey)</title>
+    <title>青蛙過街 2：3D 跨越冒險 DX (Frogger 3D Odyssey)</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐸</text></svg>">
     <link rel="stylesheet" href="style.css">
-    <!-- 引入 Three.js WebGL 3D 引擎 (CDN) -->
+
+    <!-- Three.js WebGL 3D 引擎與 UnrealBloom 霓虹輝光後製管線 (支援 file:// 與 GitHub Pages 免編譯秒開) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 </head>
 <body>
 
-    <!-- 3D 畫布容器 -->
+    <!-- 3D WebGL 畫布容器 -->
     <div id="gameContainer"></div>
+
+    <!-- 3D 空間投影飄字特效層 -->
+    <div id="fxLayer" aria-hidden="true"></div>
+
+    <!-- 右上成就與戰術通知吐司 -->
+    <div id="toastContainer" aria-live="polite"></div>
+
+    <!-- 電影級動態微縮背景首頁遮罩 -->
+    <section id="titleOverlay" class="title-overlay">
+        <div class="hero-card">
+            <div class="hero-eyebrow">✨ TOY DIORAMA EDITION · 五界機關 × 終極頭目戰</div>
+            <h1 class="hero-title">🐸 青蛙過街 2<span>3D 跨越冒險 DX</span></h1>
+            <p class="hero-sub">
+                穿梭花園小溪、古代神廟、幽靈古堡、熔岩地穴與賽博科技塔！<br>
+                施展「超級大跳、彈力長舌、超能蛙鳴」救出 5 隻小萌蛙，迎戰機械巨鱷皇！
+            </p>
+            <div class="hero-badge-row">
+                <span id="titleStarsTotal" class="star-pill">⭐ 累計星章：0 / 15</span>
+            </div>
+            <button id="btnStartGame" class="cta-start-btn">🚀 開始 3D 冒險（空白鍵 / 點擊）</button>
+            <div class="hero-sub-actions">
+                <button id="btnOpenWorldsTitle" class="ghost-btn">🗺️ 選擇世界</button>
+                <button id="btnOpenWardrobeTitle" class="ghost-btn">👕 造型與天賦工坊</button>
+                <button id="btnOpenAchieveTitle" class="ghost-btn">🏅 成就圖鑑</button>
+            </div>
+        </div>
+    </section>
 
     <!-- 頂部現代毛玻璃 HUD 資訊列 -->
     <header class="top-hud">
         <div class="hud-pill">
-            <button class="world-badge" id="worldSelectBtn">🗺️ <span id="hudWorld">世界 1：花園小溪</span> ▾</button>
+            <button class="world-badge" id="worldSelectBtn" title="選擇冒險世界">
+                🗺️ <span id="hudWorld">世界 1：花園小溪</span> ▾
+            </button>
             <div class="rescue-tracker">
-                <span>拯救小萌蛙:</span>
+                <span class="tracker-label">救援:</span>
                 <div id="hudBabyIcons"></div>
             </div>
+            <span id="hudCombo" class="combo-pill hidden">🔥 2 COMBO</span>
         </div>
 
         <div class="hud-pill">
             <div class="stats-group">
-                <div class="stat-item">🪙 金幣: <span id="hudCoins">0</span></div>
-                <div class="stat-item">⭐ 分數: <span id="hudScore">0</span></div>
-                <div class="stat-item">🏆 最高: <span id="hudHighScore">5000</span></div>
-                <div class="stat-item">生命: <span id="hudLives">🐸🐸🐸</span></div>
+                <div class="stat-item">💰 <span id="hudCoins">0</span></div>
+                <div class="stat-item">⭐ <span id="hudScore">0</span></div>
+                <div class="stat-item hide-mobile">🏆 <span id="hudHighScore">5000</span></div>
+                <div class="stat-item">生命 <span id="hudLives">🐸🐸🐸</span></div>
+            </div>
+            <div class="hud-nav-btns">
+                <button id="btnWardrobe" class="mini-pill-btn" title="3D 造型與天賦工坊">👕 工坊</button>
+                <button id="btnAchieve" class="mini-pill-btn" title="成就徽章圖鑑">🏅 成就</button>
             </div>
         </div>
     </header>
 
-    <!-- 操作漂浮提示 -->
-    <div class="floating-tip">
-        [↑↓←→ / WASD] 跳躍 | [空白鍵] 超級大跳 | [E] 伸長舌頭 | [Q] 蛙鳴尋找小青蛙
+    <!-- 終極 Boss 決戰專屬血條列 -->
+    <div id="bossHud" class="boss-hud hidden">
+        <div class="boss-header">
+            <span id="bossName">🐲 機械巨鱷皇 MECHA-SWAMPY REX</span>
+            <span class="boss-tag">FINAL BOSS</span>
+        </div>
+        <div class="boss-hp-track">
+            <div id="bossHpFill" class="boss-hp-fill"></div>
+        </div>
+        <div id="bossPhaseHint" class="boss-hint">⚡ 按 [Q] 超能蛙鳴彈反電漿球！趁牠張嘴按 [E] 長舌扯出核心！</div>
     </div>
 
-    <!-- 底部動作與超能力技能列 (Action Dock) -->
+    <!-- 行動端虛擬十字鍵 (觸控螢幕輔助) -->
+    <div id="mobileDpad" class="mobile-dpad" aria-label="方向控制">
+        <button id="dpadUp" class="dpad-btn up" aria-label="向上跳">▲</button>
+        <button id="dpadLeft" class="dpad-btn left" aria-label="向左跳">◀</button>
+        <button id="dpadRight" class="dpad-btn right" aria-label="向右跳">▶</button>
+        <button id="dpadDown" class="dpad-btn down" aria-label="向下跳">▼</button>
+    </div>
+
+    <!-- 操作漂浮提示 -->
+    <div class="floating-tip">
+        [WASD / 方向鍵] 跳躍 ｜ [空白鍵] 大跳震波 ｜ [E] 長舌救蛙/拉機關 ｜ [Q] 蛙鳴驅鬼/彈反 ｜ [C] 切換視角
+    </div>
+
+    <!-- 底部動作與超能力技能列 (附帶動態冷卻遮罩) -->
     <footer class="bottom-dock">
         <button class="skill-btn special" id="btnSuperHop" aria-label="超級大跳">
+            <div id="cdSuperHop" class="cd-fill"></div>
             <span class="icon">🚀</span>
             <span class="label">超級大跳</span>
             <span class="hotkey">空白鍵 / J</span>
         </button>
 
         <button class="skill-btn" id="btnTongue" aria-label="長舌抓捕">
+            <div id="cdTongue" class="cd-fill"></div>
             <span class="icon">👅</span>
-            <span class="label">長舌抓捕</span>
+            <span class="label">長舌神技</span>
             <span class="hotkey">E 鍵 / K</span>
         </button>
 
         <button class="skill-btn" id="btnCroak" aria-label="超能蛙鳴">
+            <div id="cdCroak" class="cd-fill"></div>
             <span class="icon">📢</span>
             <span class="label">超能蛙鳴</span>
             <span class="hotkey">Q 鍵 / L</span>
@@ -61,45 +126,109 @@
 
     <!-- 右下角快捷工具列 -->
     <aside class="quick-tools">
-        <button class="tool-icon-btn" id="muteBtn" title="音效開關">🔊</button>
-        <button class="tool-icon-btn" id="fullscreenBtn" title="全螢幕">⛶</button>
+        <button class="tool-icon-btn" id="cameraBtn" title="切換視角 (C)">🎥</button>
+        <button class="tool-icon-btn" id="qualityBtn" title="切換輝光畫質 / 省電模式">✨</button>
+        <button class="tool-icon-btn" id="muteBtn" title="音樂與音效開關">🔊</button>
+        <button class="tool-icon-btn" id="fullscreenBtn" title="全螢幕切換">⛶</button>
     </aside>
 
-    <!-- 遊戲腳本 -->
+    <!-- ==================== 原生毛玻璃互動對話框 (<dialog>) ==================== -->
+
+    <!-- 1. 五大世界選擇對話框 -->
+    <dialog id="worldDialog" class="glass-dialog">
+        <div class="dialog-inner">
+            <div class="dialog-header">
+                <h2>🗺️ 選擇冒險世界</h2>
+                <button id="closeWorldDialog" class="close-btn" aria-label="關閉">✕</button>
+            </div>
+            <p class="dialog-subtitle">五大特色生態世界皆可自由挑戰，達成「收集 6 金幣」與「零傷亡」即可點亮三星榮耀！</p>
+            <div id="worldGrid" class="card-grid"></div>
+        </div>
+    </dialog>
+
+    <!-- 2. 3D 造型工坊與天賦強化對話框 -->
+    <dialog id="wardrobeDialog" class="glass-dialog wide">
+        <div class="dialog-inner">
+            <div class="dialog-header">
+                <h2>👕 3D 萌蛙造型與天賦工坊</h2>
+                <div class="dialog-header-right">
+                    <span class="coin-balance">持有金幣：💰 <strong id="wardrobeCoins">0</strong></span>
+                    <button id="closeWardrobeDialog" class="close-btn" aria-label="關閉">✕</button>
+                </div>
+            </div>
+            <h3 class="section-heading">✨ 立體角色外觀與專屬跳躍拖尾</h3>
+            <div id="skinGrid" class="card-grid cols-3"></div>
+
+            <h3 class="section-heading">⚡ 永久超能力天賦強化</h3>
+            <div id="talentGrid" class="card-grid cols-3"></div>
+        </div>
+    </dialog>
+
+    <!-- 3. 成就圖鑑對話框 -->
+    <dialog id="achieveDialog" class="glass-dialog">
+        <div class="dialog-inner">
+            <div class="dialog-header">
+                <h2>🏅 冒險成就圖鑑 (<span id="achieveProgress">0 / 8</span>)</h2>
+                <button id="closeAchieveDialog" class="close-btn" aria-label="關閉">✕</button>
+            </div>
+            <p class="dialog-subtitle">解鎖特殊戰術動作與挑戰紀錄，即可領取豐厚金幣獎勵！</p>
+            <div id="achieveGrid" class="card-grid cols-2"></div>
+        </div>
+    </dialog>
+
+    <!-- 4. 關卡三星過關結算對話框 -->
+    <dialog id="stageClearDialog" class="glass-dialog result-dialog">
+        <div class="dialog-inner centered">
+            <h2 id="clearTitle">🎉 完美突破關卡！</h2>
+            <div id="clearStars" class="big-stars">⭐⭐⭐</div>
+            <div id="clearStats" class="result-stats"></div>
+            <div class="result-actions">
+                <button id="btnReplayStage" class="ghost-btn">🔄 再次挑戰拼三星</button>
+                <button id="btnNextStage" class="cta-start-btn compact">🚀 前往下一世界 ➔</button>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- 5. 挑戰失敗對話框 -->
+    <dialog id="gameOverDialog" class="glass-dialog result-dialog">
+        <div class="dialog-inner centered">
+            <h2>💫 冒險暫時受挫</h2>
+            <p class="dialog-subtitle">別氣餒！收集的金幣已全數保留，可前往工坊升級生命與技能再戰！</p>
+            <div id="overStats" class="result-stats"></div>
+            <div class="result-actions">
+                <button id="btnBackTitle" class="ghost-btn">🏠 返回首頁</button>
+                <button id="btnRetryStage" class="cta-start-btn compact">🔥 立即重新挑戰</button>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- 核心腳本 -->
     <script src="audio.js"></script>
     <script src="models3d.js"></script>
     <script src="game3d.js"></script>
 
     <script>
-        // 音效開關
+        // 音效與全螢幕工具按鈕綁定
         const muteBtn = document.getElementById('muteBtn');
+        if (window.soundEngine) {
+            muteBtn.textContent = window.soundEngine.muted ? '🔇' : '🔊';
+        }
         muteBtn.addEventListener('click', () => {
             window.soundEngine.init();
             const isMuted = window.soundEngine.toggleMute();
             muteBtn.textContent = isMuted ? '🔇' : '🔊';
         });
 
-        // 全螢幕切換
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         fullscreenBtn.addEventListener('click', () => {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(() => {});
                 fullscreenBtn.textContent = '✖';
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                    fullscreenBtn.textContent = '⛶';
-                }
+            } else if (document.exitFullscreen) {
+                document.exitFullscreen();
+                fullscreenBtn.textContent = '⛶';
             }
         });
-
-        // 首次點擊或按鍵啟用聲音引擎
-        window.addEventListener('click', () => {
-            if (window.soundEngine) {
-                window.soundEngine.init();
-                window.soundEngine.startBGM();
-            }
-        }, { once: true });
     </script>
 </body>
 </html>
