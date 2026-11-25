@@ -266,24 +266,26 @@ body {
     border: 1px solid var(--glass-border);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.42);
     border-radius: 99px;
-    padding: 7px 16px;
+    padding: 6px 14px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    font-size: 0.92rem;
+    gap: 10px;
+    font-size: 0.88rem;
     font-weight: 700;
+    white-space: nowrap;
 }
 
 .world-badge {
     background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
     color: #04101d;
-    padding: 6px 14px;
+    padding: 6px 13px;
     border-radius: 99px;
     font-weight: 900;
     font-family: inherit;
     cursor: pointer;
     border: none;
-    font-size: 0.85rem;
+    font-size: 0.84rem;
+    white-space: nowrap;
     box-shadow: 0 4px 14px rgba(79, 172, 254, 0.4);
     transition: transform 0.15s;
 }
